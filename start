@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -x "${APP_DIR}/.venv/bin/python" ]]; then
+  PYTHON_BIN="${APP_DIR}/.venv/bin/python"
+else
+  PYTHON_BIN="${PYTHON_BIN:-python3}"
+fi
+
+cd "${APP_DIR}"
+
+# Raise open-file limit as high as the server allows (fixes "Too many open files")
+HARD_LIMIT="$(ulimit -Hn 2>/dev/null || echo 4096)"
+if [[ "${HARD_LIMIT}" == "unlimited" ]]; then HARD_LIMIT=1048576; fi
+TARGET=65535
+if (( HARD_LIMIT < TARGET )); then TARGET="${HARD_LIMIT}"; fi
+ulimit -n "${TARGET}" 2>/dev/null || true
+echo "Open-file limit: $(ulimit -n)"
+exec "${PYTHON_BIN}" -m SHIVMUSIC
