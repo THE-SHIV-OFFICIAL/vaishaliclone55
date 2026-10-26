@@ -25,7 +25,7 @@ OWNER_USERNAME = getenv("OWNER_USERNAME", "")
 BOT_USERNAME = getenv("BOT_USERNAME", "")
 BOT_NAME = getenv("BOT_NAME", "")
 ASSUSERNAME = getenv("ASSUSERNAME", "")
-BOT_LINK = getenv("BOT_LINK", "https://t.me/royal_musics_bot")
+BOT_LINK = getenv("BOT_LINK", "https://t.me/REDWINE_MUSICROBOT")
 
 MONGO_DB_URI = getenv("MONGO_DB_URI")
 
@@ -63,7 +63,7 @@ HEROKU_API_KEY = getenv("HEROKU_API_KEY")
 
 UPSTREAM_REPO = getenv(
     "UPSTREAM_REPO",
-    "https://github.com/istkharroohi78/shivnhi",
+    "",
 )
 UPSTREAM_BRANCH = getenv("UPSTREAM_BRANCH", "main")
 GIT_TOKEN = getenv("GIT_TOKEN", "")
@@ -93,7 +93,10 @@ STRING2 = getenv("STRING_SESSION2", "")
 STRING3 = getenv("STRING_SESSION3", "")
 STRING4 = getenv("STRING_SESSION4", "")
 
-START_IMG_URL = getenv("START_IMG_URL", "https://files.catbox.moe/pozv5s.jpg").split()
+# 🟢 START IMAGE & VIDEO (Updated URLs)
+START_IMG_URL = getenv("START_IMG_URL", "https://files.catbox.moe/keln25.jpg").split()
+START_VIDEO_URL = getenv("START_VIDEO_URL", "https://files.catbox.moe/0v9z4o.mp4")
+
 HELP_IMG_URL = getenv("HELP_IMG_URL", "https://files.catbox.moe/dk92ep.jpg").split()
 PING_IMG_URL = getenv("PING_IMG_URL", "https://files.catbox.moe/wktt8l.jpg").split()
 
@@ -115,10 +118,10 @@ votemode = {}
 autoclean = []
 confirmer = {}
 
-START_IMG_URL = getenv("START_IMG_URL", "https://files.catbox.moe/n22tbs.jpg").split()
 
 def time_to_seconds(time):
     return sum(int(x) * 60**i for i, x in enumerate(reversed(str(time).split(":"))))
+
 
 DURATION_LIMIT = int(time_to_seconds(f"{DURATION_LIMIT_MIN}:00"))
 
@@ -128,12 +131,13 @@ if SUPPORT_CHANNEL and not re.match("(?:http|https)://", SUPPORT_CHANNEL):
 if SUPPORT_CHAT and not re.match("(?:http|https)://", SUPPORT_CHAT):
     raise SystemExit("[ERROR] - SUPPORT_CHAT url must start with https://")
 
-CMBOT = [ "💞", "🥂", "🔍", "🧪", "⚡️", "🔥", "🦋", "🎩", "🌈", "🍷",
+CMBOT = [
+    "💞", "🥂", "🔍", "🧪", "⚡️", "🔥", "🦋", "🎩", "🌈", "🍷",
     "🥃", "🥤", "🕊️", "💌", "🧨", "✨", "💥", "💯", "🌟", "⚡️",
     "❤️", "😍", "🥰", "😘", "😂", "🤣", "😱", "😡", "👏", "🙏",
     "🎉", "🎊", "🎶", "🎵", "🎧", "🎸", "🎹", "🥁", "🎺", "🎷",
     "🔥", "⚡️", "💫", "🌙", "☀️", "🌈", "❄️", "🌸", "🌺", "🌹",
-    "🦋", "🕊️", "🐍", "🐯", "🦁", "🐺", "🐉", "🦅", "🦄", "🐎"
+    "🦋", "🕊️", "🐍", "🐯", "🦁", "🐺", "🐉", "🦅", "🦄", "🐎",
 ]
 
 EFFECT_ID = [
