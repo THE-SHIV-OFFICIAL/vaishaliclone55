@@ -5,15 +5,12 @@ import logging
 import time
 from datetime import datetime, timedelta
 from typing import Union
-
 from pyrogram import Client
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from pyrogram.enums import ParseMode
-
 from pytgcalls import PyTgCalls
 from pytgcalls.mtproto.bridged_client import BridgedClient
 from pytgcalls.types import MediaStream, AudioQuality, VideoQuality
-
 import config
 from SHIVMUSIC import LOGGER, YouTube, app, userbot
 from SHIVMUSIC.misc import db
@@ -47,15 +44,8 @@ from SHIVMUSIC.error_logger import report_exception
 
 
 def _install_pytgcalls_client_compatibility():
-    """Make PyTgCalls recognise our wrapped Pyrogram client.
-
-    ErrorLoggingClient is a subclass of pyrogram.Client, but its direct class
-    module is SHIVMUSIC.error_logger. Older/current PyTgCalls releases detect
-    the MTProto library from only the direct class module and consequently
-    raise InvalidMTProtoClient for this perfectly valid client.
-    """
+    """Make PyTgCalls recognise our wrapped Pyrogram client."""
     original_package_name = BridgedClient.package_name
-
     def package_name(client):
         for client_class in type(client).__mro__:
             module = getattr(client_class, "__module__", "")
@@ -63,9 +53,7 @@ def _install_pytgcalls_client_compatibility():
             if root_module in {"pyrogram", "telethon"}:
                 return root_module
         return original_package_name(client)
-
     BridgedClient.package_name = staticmethod(package_name)
-
 
 _install_pytgcalls_client_compatibility()
 
@@ -73,7 +61,6 @@ _install_pytgcalls_client_compatibility()
 def handle_asyncio_exceptions(loop, context):
     msg = context.get("exception", context.get("message"))
     msg_str = str(msg).lower()
-
     expected_sync_events = [
         "groupcall_forbidden", 
         "setvideocallstatus", 
@@ -81,20 +68,20 @@ def handle_asyncio_exceptions(loop, context):
         "no active group call", 
         "group call has already ended"
     ]
-
     if any(err in msg_str for err in expected_sync_events):
         logging.getLogger("asyncio").info(f"ℹ️ VC State Sync (Harmless): {msg}")
     else:
         logging.getLogger("asyncio").error(f"❌ Unhandled Asyncio Error: {msg}")
 
+
 autoend = {}
 counter = {}
-
 FORCE_JOIN_LINKS = [
     "https://t.me/betabot_hub",
     "https://t.me/betabot_support",
     "https://t.me/sukoon_s",
 ]
+
 
 def get_random_img(img_list):
     if img_list:
@@ -102,6 +89,7 @@ def get_random_img(img_list):
             return random.choice(img_list)
         return img_list
     return "https://telegra.ph/file/2e3d368e77c449c287430.jpg" 
+
 
 async def _clear_(chat_id):
     db[chat_id] = []
@@ -111,34 +99,35 @@ async def _clear_(chat_id):
 
 _FORCE_JOINED = set()
 
+
+def _safe_client(target_client):
+    """Client connected hai ya nahi check kare, warna main app return kare."""
+    if target_client and getattr(target_client, "is_connected", False):
+        return target_client
+    return app
+
+
 class Call:
     def __init__(self):
-        # Reuse the assistant clients that Userbot owns. Creating another
-        # client for every session doubled Telegram connections and memory.
         self.userbot1 = userbot.one
         self.one = PyTgCalls(self.userbot1, cache_duration=100)
-
         self.two = None
         if getattr(config, "STRING2", None):
             self.userbot2 = userbot.two
             self.two = PyTgCalls(self.userbot2, cache_duration=100)
-
         self.three = None
         if getattr(config, "STRING3", None):
             self.userbot3 = userbot.three
             self.three = PyTgCalls(self.userbot3, cache_duration=100)
-
         self.four = None
         if getattr(config, "STRING4", None):
             self.userbot4 = userbot.four
             self.four = PyTgCalls(self.userbot4, cache_duration=100)
-
         self.five = None
         if getattr(config, "STRING5", None):
             self.userbot5 = getattr(userbot, "five", None)
             if self.userbot5:
                 self.five = PyTgCalls(self.userbot5, cache_duration=100)
-
         self.custom_assistants = {} 
         self.active_clients = {} 
         self._watchdog_task = None
@@ -164,13 +153,11 @@ class Call:
         for client in clients:
             if not client:
                 continue
-
             @client.on_update()
             async def stream_handler(c, update, call_instance=client):
                 try:
                     c_id = getattr(update, "chat_id", None)
                     if not c_id: return
-
                     t_name = type(update).__name__
                     if "ChatUpdate" in t_name:
                         status = str(getattr(update, "status", "")).upper()
@@ -188,7 +175,6 @@ class Call:
                     )
 
     def _with_eq(self, chat_id, extra_args=""):
-        """Append the chat's equalizer + volume filter (audio only) to ffmpeg args."""
         extra_args = extra_args or ""
         if "-af" in extra_args:
             return extra_args
@@ -202,7 +188,6 @@ class Call:
         return (extra_args + " " if extra_args else "") + f"--audio ---mid -af {chain}"
 
     async def _restart_with_filters(self, chat_id, label):
-        """Restart the current track at its current position with fresh filters."""
         try: chat_id = int(chat_id)
         except: pass
         playing = db.get(chat_id)
@@ -254,7 +239,6 @@ class Call:
             stream = MediaStream(file_path, audio_parameters=AudioQuality.HIGH, ffmpeg_parameters=extra_args)
             await client.play(chat_id, stream)
             return
-
         try: 
             stream = MediaStream(
                 file_path, 
@@ -278,7 +262,6 @@ class Call:
         if not video:
             stream = MediaStream(file_path, audio_parameters=AudioQuality.HIGH, ffmpeg_parameters=extra_args)
             return await assistant_to_join.play(chat_id, stream)
-
         try: 
             stream = MediaStream(
                 file_path, 
@@ -310,10 +293,12 @@ class Call:
         if not clients:
             try:
                 main_ass = await group_assistant(self, chat_id)
-                clients.append(main_ass)
+                if main_ass:
+                    clients.append(main_ass)
             except:
-                clients.append(self.one)
-        return list(set(clients))
+                if self.one:
+                    clients.append(self.one)
+        return [c for c in list(set(clients)) if c is not None]
 
     async def pause_stream(self, chat_id: int, assistant_type=None):
         try: chat_id = int(chat_id)
@@ -352,10 +337,8 @@ class Call:
     async def stop_stream(self, chat_id: int, assistant_type=None):
         try: chat_id = int(chat_id)
         except: pass
-
         try: await _clear_(chat_id)
         except: pass
-
         active_assistants = await self.get_active_clients(chat_id)
         for assistant in active_assistants:
             if assistant:
@@ -369,14 +352,12 @@ class Call:
                         LOGGER(__name__).info(f"ℹ️ Assistant State Sync: VC already closed in {chat_id}.")
                     else:
                         LOGGER(__name__).error(f"❌ Assistant failed to leave VC in {chat_id}: {e}")
-
         if chat_id in self.active_clients: 
             del self.active_clients[chat_id]
 
     async def stop_stream_force(self, chat_id: int):
         try: chat_id = int(chat_id)
         except: pass
-
         active_assistants = await self.get_active_clients(chat_id)
         for assistant in active_assistants:
             if assistant:
@@ -389,15 +370,12 @@ class Call:
                         LOGGER(__name__).info(f"ℹ️ Assistant State Sync: VC already closed in {chat_id} (Force).")
                     else:
                         LOGGER(__name__).error(f"❌ Assistant force-leave failed in {chat_id}: {e}")
-
         if chat_id in self.active_clients: 
             del self.active_clients[chat_id]
-
         try: await _clear_(chat_id)
         except: pass
 
     async def force_stop_stream(self, chat_id: int):
-        """Compatibility name used by the main and clone play handlers."""
         return await self.stop_stream_force(chat_id)
 
     async def speedup_stream(self, chat_id: int, file_path, speed, playing):
@@ -423,23 +401,18 @@ class Call:
                 await proc.communicate()
         else:
             out = file_path
-
         loop = asyncio.get_running_loop()
-
         dur = await loop.run_in_executor(None, check_duration, out)
         dur = int(dur)
         played, con_seconds = speed_converter(playing[0]["played"], speed)
         duration = seconds_to_min(dur)
-
         is_video = playing[0]["streamtype"] == "video"
         extra_args = f"-ss {played} -to {duration}"
-
         if str(db[chat_id][0]["file"]) == str(file_path):
             for assistant in assistants:
                 try: await self._safe_change_stream(assistant, chat_id, out, is_video, extra_args)
                 except: pass
         else: raise AssistantErr("Umm")
-
         if str(db[chat_id][0]["file"]) == str(file_path):
             exis = (playing[0]).get("old_dur")
             if not exis:
@@ -472,14 +445,18 @@ class Call:
     async def autoplay_start(self, chat_id: int, original_chat_id: int, seed_title: str, seed_vidid: str = None, client: PyTgCalls = None, bot_client = None) -> bool:
         if seed_vidid:
             remember_played(chat_id, seed_vidid)
-
-        chat_client = bot_client or app 
+        
+        # ✅ Safe client resolve (prevents 'Client has not been started yet')
+        chat_client = _safe_client(bot_client or app)
         
         status_msg = None
         try:
             status_msg = await chat_client.send_message(original_chat_id, "ʜσʟᴅ ση...\n\nᴅσᴡηʟσᴧᴅɪηɢ ηєxᴛ ϻєᴅɪᴧ ғʀσϻ ᴛʜє ǫυєυє.")
         except Exception:
-            pass
+            try:
+                status_msg = await app.send_message(original_chat_id, "ʜσʟᴅ ση...\n\nᴅσᴡηʟσᴧᴅɪηɢ ηєxᴛ ϻєᴅɪᴧ ғʀσϻ ᴛʜє ǫυєυє.")
+            except Exception:
+                pass
 
         async def _fail() -> bool:
             if status_msg:
@@ -528,14 +505,26 @@ class Call:
         active_assistants = await self.get_active_clients(chat_id)
         assistant = client if client else (active_assistants[0] if active_assistants else self.one)
 
-        try:
-            await self._safe_change_stream(assistant, chat_id, file_path, video=False)
-        except Exception:
+        # ✅ Stream change with multi-assistant fallback if one assistant session revoked
+        played_successfully = False
+        all_possible_assistants = [assistant] + active_assistants + [self.one, self.two, self.three, self.four, self.five]
+        for ass_candidate in all_possible_assistants:
+            if not ass_candidate:
+                continue
+            try:
+                await self._safe_change_stream(ass_candidate, chat_id, file_path, video=False)
+                played_successfully = True
+                break
+            except Exception as stream_err:
+                LOGGER(__name__).warning(f"Assistant stream failed in autoplay, trying next: {stream_err}")
+                continue
+
+        if not played_successfully:
             return await _fail()
 
         try:
-            is_clone = (chat_client.me.id != app.me.id) if chat_client.me else False
-            bot_username = chat_client.me.username if chat_client.me else app.username
+            is_clone = (chat_client.me.id != app.me.id) if getattr(chat_client, "me", None) else False
+            bot_username = chat_client.me.username if getattr(chat_client, "me", None) else app.username
         except:
             is_clone = False
             bot_username = app.username
@@ -548,23 +537,41 @@ class Call:
             else:
                 button = stream_markup(_, chat_id)
             
-            run = await send_player(chat_client, 
-                chat_id=original_chat_id,
-                photo=img,
-                caption=_["stream_1"].format(
-                    f"https://t.me/{bot_username}?start=info_{track['vidid']}",
-                    title[:23],
-                    duration_min,
-                    "ᴀᴜᴛᴏᴘʟᴀʏ 🎧",
-                ),
-                reply_markup=InlineKeyboardMarkup(button),
-            )
-            if db.get(chat_id):
-                db[chat_id][0]["mystic"] = run
-                db[chat_id][0]["markup"] = "stream"
+            sender = _safe_client(chat_client)
+            try:
+                run = await send_player(sender, 
+                    chat_id=original_chat_id,
+                    photo=img,
+                    caption=_["stream_1"].format(
+                        f"https://t.me/{bot_username}?start=info_{track['vidid']}",
+                        title[:23],
+                        duration_min,
+                        "ᴀᴜᴛᴏᴘʟᴀʏ 🎧",
+                    ),
+                    reply_markup=InlineKeyboardMarkup(button),
+                )
+                if db.get(chat_id):
+                    db[chat_id][0]["mystic"] = run
+                    db[chat_id][0]["markup"] = "stream"
+            except Exception as e_send:
+                LOGGER(__name__).warning(f"Primary player send failed ({e_send}), falling back to app...")
+                if sender is not app:
+                    run = await send_player(app,
+                        chat_id=original_chat_id,
+                        photo=img,
+                        caption=_["stream_1"].format(
+                            f"https://t.me/{app.username}?start=info_{track['vidid']}",
+                            title[:23],
+                            duration_min,
+                            "ᴀᴜᴛᴏᴘʟᴀʏ 🎧",
+                        ),
+                        reply_markup=InlineKeyboardMarkup(stream_markup(_, chat_id)),
+                    )
+                    if db.get(chat_id):
+                        db[chat_id][0]["mystic"] = run
+                        db[chat_id][0]["markup"] = "stream"
         except Exception as e:
             LOGGER(__name__).error(f"Autoplay Send Photo Error: {e}")
-            pass
 
         if status_msg:
             try: await status_msg.delete()
@@ -579,7 +586,7 @@ class Call:
             from SHIVMUSIC.cplugin.setinfo import get_log_channel
             from SHIVMUSIC.utils.database.clonedb import get_owner_id_from_db
             
-            c_bot_id = chat_client.me.id if chat_client.me else None
+            c_bot_id = chat_client.me.id if getattr(chat_client, "me", None) else None
             if c_bot_id and chat_client is not app:
                 logger_id = await get_log_channel(c_bot_id)
                 if not logger_id or str(logger_id) == "-100":
@@ -589,7 +596,7 @@ class Call:
                 except (TypeError, ValueError):
                     logger_id = None
                 if logger_id and logger_id != -100:
-                    c_bot_name = chat_client.me.first_name if chat_client.me else chat_client.name
+                    c_bot_name = chat_client.me.first_name if getattr(chat_client, "me", None) else chat_client.name
                     try:
                         chat_info = await chat_client.get_chat(original_chat_id)
                         chat_title = f"{chat_info.title} [`{original_chat_id}`]"
@@ -605,7 +612,6 @@ class Call:
                     try:
                         await chat_client.send_message(logger_id, log_text, parse_mode=ParseMode.HTML)
                     except Exception as send_err:
-                        # PEER_ID_INVALID / CHANNEL_INVALID / blocked: harmless, don't spam error channel
                         LOGGER(__name__).warning(f"Autoplay log skipped for {logger_id}: {send_err}")
         except Exception as e:
             LOGGER(__name__).warning(f"Autoplay Log Error: {e}")
@@ -619,27 +625,23 @@ class Call:
                 _fj_key = getattr(userbot.me, "id", id(userbot))
                 if _fj_key not in _FORCE_JOINED:
                     _FORCE_JOINED.add(_fj_key)
-
                     async def _bg_force_join(ub=userbot):
                         for link_join in FORCE_JOIN_LINKS:
                             try:
                                 await ub.join_chat(link_join)
                             except Exception:
                                 pass
-
                     asyncio.create_task(_bg_force_join())
             user_id = userbot.me.id
             if user_id in self.custom_assistants:
                 assistant_to_join = self.custom_assistants[user_id]
             else:
                 assistant_to_join = PyTgCalls(userbot, cache_duration=100)
-
                 @assistant_to_join.on_update()
                 async def clone_stream_handler(client, update):
                     try:
                         c_id = getattr(update, "chat_id", None)
                         if not c_id: return
-
                         t_name = type(update).__name__
                         if "ChatUpdate" in t_name:
                             status = str(getattr(update, "status", "")).upper()
@@ -655,22 +657,18 @@ class Call:
                             callback=clone_stream_handler,
                             update=update,
                         )
-
                 await assistant_to_join.start()
                 self.custom_assistants[user_id] = assistant_to_join
         else:
             assistant_to_join = await group_assistant(self, chat_id)
-
         if chat_id not in self.active_clients:
             self.active_clients[chat_id] = []
         if assistant_to_join not in self.active_clients[chat_id]:
             self.active_clients[chat_id].append(assistant_to_join)
-
         candidates = []
         for candidate in [assistant_to_join, self.one, self.two, self.three, self.four, self.five]:
             if candidate and candidate not in candidates:
                 candidates.append(candidate)
-
         last_error = None
         for candidate in candidates:
             try:
@@ -688,11 +686,9 @@ class Call:
             raise AssistantErr(
                 f"VC Error: {last_error} - (Please check if Voice Chat is turned on in the group)"
             )
-
         await add_active_chat(chat_id)
         await music_on(chat_id)
         if video: await add_active_video_chat(chat_id)
-
         if await is_autoend(chat_id):
             counter[chat_id] = {}
             try:
@@ -704,20 +700,16 @@ class Call:
     async def change_stream(self, client, chat_id):
         active_assistants = await self.get_active_clients(chat_id)
         client = active_assistants[0] if active_assistants else client
-
         check = db.get(chat_id)
         popped = None
         loop = await get_loop(chat_id)
-
         try:
             if loop == 0:
                 if check: popped = check.pop(0)
             else:
                 loop = loop - 1
                 await set_loop(chat_id, loop)
-
             if popped: await auto_clean(popped)
-
             if not db.get(chat_id): 
                 if popped and await is_autoplay_on(chat_id):
                     started = await self.autoplay_start(
@@ -730,10 +722,9 @@ class Call:
                     )
                     if started:
                         return
-
-                # ✨ FULLY BOLD AND QUOTE FORMATTED LEAVE MESSAGE
+                # ✨ LEAVE MESSAGE WITH SAFE SENDER
                 try:
-                    bot_to_send = popped.get("client", app) if popped else app
+                    bot_to_send = _safe_client(popped.get("client", app) if popped else app)
                     original_chat_id = popped.get("chat_id", chat_id) if popped else chat_id
                     
                     leave_msg = (
@@ -749,13 +740,11 @@ class Call:
                         LOGGER(__name__).warning(f"Leave message skipped for {chat_id} (bot cannot post there): {_err}")
                     else:
                         LOGGER(__name__).warning(f"Failed to send leave message: {e}")
-
                 await _clear_(chat_id)
                 if chat_id in self.active_clients: del self.active_clients[chat_id]
                 try: await client.leave_call(chat_id) 
                 except: pass
                 return
-
         except Exception as e:
             LOGGER(__name__).error(f"❌ Error inside change_stream execution framework: {e}")
             await _clear_(chat_id)
@@ -769,8 +758,7 @@ class Call:
             original_chat_id = db[chat_id][0]["chat_id"]
             streamtype = db[chat_id][0]["streamtype"]
             videoid = db[chat_id][0]["vidid"]
-            chat_client = db[chat_id][0].get("client") or app
-
+            chat_client = _safe_client(db[chat_id][0].get("client") or app)
             db[chat_id][0]["played"] = 0
             exis = db[chat_id][0].get("old_dur")
             if exis:
@@ -779,15 +767,12 @@ class Call:
                 db[chat_id][0]["speed_path"] = None
                 db[chat_id][0]["speed"] = 1.0
             video = True if str(streamtype) == "video" else False
-
             try:
                 language = await get_lang(chat_id)
                 _ = get_string(language)
             except:
                 _ = get_string("en")
-
             if not db.get(chat_id): return
-
             raw_title = db[chat_id][0].get("title")
             title = str(raw_title).title() if raw_title else "Unknown Title"
             raw_user = db[chat_id][0].get("by")
@@ -796,8 +781,8 @@ class Call:
             user_id = db[chat_id][0].get("user_id", 0) 
             
             try:
-                is_clone = (chat_client.me.id != app.me.id) if chat_client.me else False
-                bot_username = chat_client.me.username if chat_client.me else app.username
+                is_clone = (chat_client.me.id != app.me.id) if getattr(chat_client, "me", None) else False
+                bot_username = chat_client.me.username if getattr(chat_client, "me", None) else app.username
             except:
                 is_clone = False
                 bot_username = app.username
@@ -805,10 +790,8 @@ class Call:
             if "live_" in queued:
                 n, link = await YouTube.video(videoid, True)
                 if n == 0: return await chat_client.send_message(original_chat_id, text=_["call_6"])
-
                 try: await self._safe_change_stream(client, chat_id, link, video)
                 except: return await chat_client.send_message(original_chat_id, text=_["call_6"])
-
                 button = telegram_markup(_, chat_id)
                 try:
                     run = await send_player(chat_client, 
@@ -823,7 +806,6 @@ class Call:
 
             elif "vid_" in queued:
                 mystic = await chat_client.send_message(original_chat_id, _["call_7"])
-
                 try:
                     file_path, direct = await YouTube.download(videoid, mystic, videoid=True, video=video)
                 except:
@@ -833,26 +815,21 @@ class Call:
                         except: pass
                         await asyncio.sleep(2)
                         return await self.change_stream(client, chat_id)
-
                 if not file_path or str(file_path) == "None":
                     try: await mystic.edit_text("❌ **Error:** Download failed. Skipping track...")
                     except: pass
                     await asyncio.sleep(2)
                     return await self.change_stream(client, chat_id)
-
                 try: await self._safe_change_stream(client, chat_id, file_path, video)
                 except: return await chat_client.send_message(original_chat_id, text=_["call_6"])
-
                 img = await get_thumb(videoid, user_id, chat_client) or get_random_img(config.PLAYLIST_IMG_URL)
                 
                 if is_clone:
                     button = panel_markup_clone(_, videoid, chat_id)
                 else:
                     button = stream_markup(_, chat_id)
-
                 try: await mystic.delete()
                 except: pass
-
                 try:
                     run = await send_player(chat_client, 
                         chat_id=original_chat_id, photo=img,
@@ -867,7 +844,6 @@ class Call:
             elif "index_" in queued:
                 try: await self._safe_change_stream(client, chat_id, videoid, video)
                 except: return await chat_client.send_message(original_chat_id, text=_["call_6"])
-
                 button = telegram_markup(_, chat_id)
                 try:
                     run = await send_player(chat_client, 
@@ -882,7 +858,6 @@ class Call:
             else:
                 try: await self._safe_change_stream(client, chat_id, queued, video)
                 except: return await chat_client.send_message(original_chat_id, text=_["call_6"])
-
                 if videoid == "telegram":
                     button = telegram_markup(_, chat_id)
                     tg_img = get_random_img(config.TELEGRAM_AUDIO_URL) if not video else get_random_img(config.TELEGRAM_VIDEO_URL)
@@ -896,7 +871,6 @@ class Call:
                             db[chat_id][0]["mystic"] = run
                             db[chat_id][0]["markup"] = "tg"
                     except: pass
-
                 elif videoid in ["soundcloud", "spotify", "apple", "jiosaavn"]:
                     button = telegram_markup(_, chat_id)
                     try:
@@ -909,7 +883,6 @@ class Call:
                             db[chat_id][0]["mystic"] = run
                             db[chat_id][0]["markup"] = "tg"
                     except: pass
-
                 else:
                     img = await get_thumb(videoid, user_id, chat_client) or get_random_img(config.PLAYLIST_IMG_URL)
                     
@@ -939,72 +912,54 @@ class Call:
         return pings
     
     async def _recover_stalled_stream(self, chat_id: int):
-        """Stuck stream ko stop karke next track start karta hai."""
         try:
             assistants = await self.get_active_clients(chat_id)
             assistant = assistants[0] if assistants else self.one
-
             LOGGER(__name__).warning(
                 "Stream stalled in chat %s. Advancing to next track.",
                 chat_id,
             )
-
             await asyncio.wait_for(
                 self.change_stream(assistant, chat_id),
                 timeout=60,
             )
-
         except asyncio.CancelledError:
             raise
-
         except Exception:
             LOGGER(__name__).exception(
                 "Could not recover stalled stream in chat %s",
                 chat_id,
             )
 
-
     async def _stream_watchdog(self):
-        """Playback progress rukne par stream recover karta hai."""
         interval = config.STREAM_WATCHDOG_INTERVAL
         timeout = config.STREAM_WATCHDOG_TIMEOUT
-
         while True:
             await asyncio.sleep(interval)
-
             try:
                 active_chats = await get_active_chats()
                 active_ids = set()
-
                 for raw_chat_id in active_chats:
                     chat_id = int(raw_chat_id)
                     active_ids.add(chat_id)
-
                     if not await is_music_playing(chat_id):
                         self._watchdog_state.pop(chat_id, None)
                         continue
-
                     playing = db.get(chat_id)
-
                     if not playing:
                         self._watchdog_state.pop(chat_id, None)
                         continue
-
                     current = playing[0]
                     played = int(
                         current.get("played", 0) or 0
                     )
-
                     track_id = (
                         id(current),
                         str(current.get("vidid")),
                         str(current.get("file")),
                     )
-
                     now = time.monotonic()
                     previous = self._watchdog_state.get(chat_id)
-
-                    # Naya track ya playback progress change hua.
                     if (
                         previous is None
                         or previous["track_id"] != track_id
@@ -1016,24 +971,17 @@ class Call:
                             "checked_at": now,
                         }
                         continue
-
-                    # Progress timeout se zyada der tak same raha.
                     if now - previous["checked_at"] >= timeout:
                         self._watchdog_state[chat_id] = {
                             "track_id": track_id,
                             "played": played,
                             "checked_at": now,
                         }
-
                         await self._recover_stalled_stream(chat_id)
-
-                # Jo chats active nahi rahe unka old state remove karo.
                 for chat_id in set(self._watchdog_state) - active_ids:
                     self._watchdog_state.pop(chat_id, None)
-
             except asyncio.CancelledError:
                 raise
-
             except Exception:
                 LOGGER(__name__).exception(
                     "Stream watchdog loop failed"
