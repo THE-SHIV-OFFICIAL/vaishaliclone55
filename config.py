@@ -31,7 +31,7 @@ MONGO_DB_URI = getenv("MONGO_DB_URI")
 
 # ----------------- API RACING CONFIGURATION -----------------
 # 1. Shruti API
-SHRUTI_API_URL = getenv("SHRUTI_API_URL", "https://api.shrutibots.site")
+SHRUTI_API_URL = getenv("SHRUTI_API_URL", "https://api.shrutibots.in")
 SHRUTI_API_KEY = getenv("SHRUTI_API_KEY", "")
 
 # 2. MusicSp API
