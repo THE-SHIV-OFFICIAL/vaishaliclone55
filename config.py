@@ -95,7 +95,7 @@ STRING4 = getenv("STRING_SESSION4", "")
 
 # 🟢 START IMAGE & VIDEO (Updated URLs)
 START_IMG_URL = getenv("START_IMG_URL", "https://files.catbox.moe/keln25.jpg").split()
-START_VIDEO_URL = getenv("START_VIDEO_URL", "https://files.catbox.moe/0v9z4o.mp4")
+START_VIDEO_URL = getenv("START_VIDEO_URL", "BAACAgQAAxkDAAEBm0hq33N1G1tujOlun6UoC3WCt1cWmQACYAsAAqhvvFI_wnum_Q_xKB4E")
 
 HELP_IMG_URL = getenv("HELP_IMG_URL", "https://files.catbox.moe/dk92ep.jpg").split()
 PING_IMG_URL = getenv("PING_IMG_URL", "https://files.catbox.moe/wktt8l.jpg").split()
