@@ -12,6 +12,13 @@ from git.exc import GitCommandError, InvalidGitRepositoryError
 from pyrogram import filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
+try:
+    from pyrogram.types import LinkPreviewOptions
+    _PREVIEW_DISABLED = {'link_preview_options': LinkPreviewOptions(is_disabled=True)}
+except Exception:
+    _PREVIEW_DISABLED = {}
+
+
 import config
 from SHIVMUSIC import app
 
@@ -155,7 +162,7 @@ async def update_(client, message, _):
             nrs = await response.edit(
                 f'{header}<a href="{html.escape(str(url), quote=True)}">'
                 "View commit details</a>",
-                disable_web_page_preview=True,
+                **_PREVIEW_DISABLED,
             )
         except Exception:
             nrs = await response.edit(
@@ -164,7 +171,7 @@ async def update_(client, message, _):
     else:
         nrs = await response.edit(
             update_text,
-            disable_web_page_preview=True,
+            **_PREVIEW_DISABLED,
         )
 
     # Local tracked changes hon to unhe silently stash/discard na kare.
