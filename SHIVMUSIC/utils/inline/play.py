@@ -98,13 +98,13 @@ def stream_markup_timer(_, chat_id, played, dur):
         [
             create_btn(text=f"{played} {bar} {dur}", cb="GetTimer", style=s_map[1], emoji_id=5217933090483098080)
         ],
-        # Row 2: 5 Compact Play Controls with Premium Emojis
+        # Row 2: 5 Compact Play Controls with Premium Emojis & fallback symbols for non-premium
         [
-            create_btn(text="\u200b", cb=f"ADMIN Resume|{chat_id}", style=s_map[3], emoji_id=PLAY_EMOJI),
-            create_btn(text="\u200b", cb=f"ADMIN Pause|{chat_id}", style=s_map[3], emoji_id=PAUSE_EMOJI),
-            create_btn(text="\u200b", cb=f"EqPanel {chat_id}", style=s_map[3], emoji_id=EQ_EMOJI),
-            create_btn(text="\u200b", cb=f"ADMIN Skip|{chat_id}", style=s_map[3], emoji_id=SKIP_EMOJI),
-            create_btn(text="\u200b", cb=f"ADMIN Stop|{chat_id}", style=s_map[3], emoji_id=STOP_EMOJI),
+            create_btn(text="▶", cb=f"ADMIN Resume|{chat_id}", style=s_map[3], emoji_id=PLAY_EMOJI),
+            create_btn(text="⏸", cb=f"ADMIN Pause|{chat_id}", style=s_map[3], emoji_id=PAUSE_EMOJI),
+            create_btn(text="❄️", cb=f"EqPanel {chat_id}", style=s_map[3], emoji_id=EQ_EMOJI),
+            create_btn(text="⏭", cb=f"ADMIN Skip|{chat_id}", style=s_map[3], emoji_id=SKIP_EMOJI),
+            create_btn(text="⏹", cb=f"ADMIN Stop|{chat_id}", style=s_map[3], emoji_id=STOP_EMOJI),
         ],
         # Row 3: Autoplay & Clone merged
         [
@@ -124,11 +124,11 @@ def stream_markup(_, chat_id):
     s_map = get_style_map()
     buttons = [
         [
-            create_btn(text="\u200b", cb=f"ADMIN Resume|{chat_id}", style=s_map[3], emoji_id=PLAY_EMOJI),
-            create_btn(text="\u200b", cb=f"ADMIN Pause|{chat_id}", style=s_map[3], emoji_id=PAUSE_EMOJI),
-            create_btn(text="\u200b", cb=f"EqPanel {chat_id}", style=s_map[3], emoji_id=EQ_EMOJI),
-            create_btn(text="\u200b", cb=f"ADMIN Skip|{chat_id}", style=s_map[3], emoji_id=SKIP_EMOJI),
-            create_btn(text="\u200b", cb=f"ADMIN Stop|{chat_id}", style=s_map[3], emoji_id=STOP_EMOJI),
+            create_btn(text="▶", cb=f"ADMIN Resume|{chat_id}", style=s_map[3], emoji_id=PLAY_EMOJI),
+            create_btn(text="⏸", cb=f"ADMIN Pause|{chat_id}", style=s_map[3], emoji_id=PAUSE_EMOJI),
+            create_btn(text="❄️", cb=f"EqPanel {chat_id}", style=s_map[3], emoji_id=EQ_EMOJI),
+            create_btn(text="⏭", cb=f"ADMIN Skip|{chat_id}", style=s_map[3], emoji_id=SKIP_EMOJI),
+            create_btn(text="⏹", cb=f"ADMIN Stop|{chat_id}", style=s_map[3], emoji_id=STOP_EMOJI),
         ],
         [
             create_btn(text=autoplay_label(chat_id), cb=f"ADMIN Autoplay|{chat_id}", style=s_map[1]),
@@ -207,11 +207,11 @@ def queue_markup(_, videoid, chat_id):
             create_btn(text=_["S_B_3"], url=f"https://t.me/{app.username}?startgroup=true", style=s_map[1]),
         ],
         [
-            create_btn(text="\u200b", cb=f"ADMIN Resume|{chat_id}", style=s_map[3], emoji_id=PLAY_EMOJI),
-            create_btn(text="\u200b", cb=f"ADMIN Pause|{chat_id}", style=s_map[3], emoji_id=PAUSE_EMOJI),
-            create_btn(text="\u200b", cb=f"EqPanel {chat_id}", style=s_map[3], emoji_id=EQ_EMOJI),
-            create_btn(text="\u200b", cb=f"ADMIN Skip|{chat_id}", style=s_map[3], emoji_id=SKIP_EMOJI),
-            create_btn(text="\u200b", cb=f"ADMIN Stop|{chat_id}", style=s_map[3], emoji_id=STOP_EMOJI),
+            create_btn(text="▶", cb=f"ADMIN Resume|{chat_id}", style=s_map[3], emoji_id=PLAY_EMOJI),
+            create_btn(text="⏸", cb=f"ADMIN Pause|{chat_id}", style=s_map[3], emoji_id=PAUSE_EMOJI),
+            create_btn(text="❄️", cb=f"EqPanel {chat_id}", style=s_map[3], emoji_id=EQ_EMOJI),
+            create_btn(text="⏭", cb=f"ADMIN Skip|{chat_id}", style=s_map[3], emoji_id=SKIP_EMOJI),
+            create_btn(text="⏹", cb=f"ADMIN Stop|{chat_id}", style=s_map[3], emoji_id=STOP_EMOJI),
         ],
         [
             create_btn(text=autoplay_label(chat_id), cb=f"ADMIN Autoplay|{chat_id}", style=s_map[1]),
@@ -290,11 +290,11 @@ def panel_markup_5(_, videoid, chat_id):
             create_btn(text=_["S_B_3"], url=f"https://t.me/{app.username}?startgroup=true", style=s_map[1]),
         ],
         [
-            create_btn(text="\u200b", cb=f"ADMIN Resume|{chat_id}", style=s_map[3], emoji_id=PLAY_EMOJI),
-            create_btn(text="\u200b", cb=f"ADMIN Pause|{chat_id}", style=s_map[3], emoji_id=PAUSE_EMOJI),
-            create_btn(text="\u200b", cb=f"EqPanel {chat_id}", style=s_map[3], emoji_id=EQ_EMOJI),
-            create_btn(text="\u200b", cb=f"ADMIN Skip|{chat_id}", style=s_map[3], emoji_id=SKIP_EMOJI),
-            create_btn(text="\u200b", cb=f"ADMIN Stop|{chat_id}", style=s_map[3], emoji_id=STOP_EMOJI),
+            create_btn(text="▶", cb=f"ADMIN Resume|{chat_id}", style=s_map[3], emoji_id=PLAY_EMOJI),
+            create_btn(text="⏸", cb=f"ADMIN Pause|{chat_id}", style=s_map[3], emoji_id=PAUSE_EMOJI),
+            create_btn(text="❄️", cb=f"EqPanel {chat_id}", style=s_map[3], emoji_id=EQ_EMOJI),
+            create_btn(text="⏭", cb=f"ADMIN Skip|{chat_id}", style=s_map[3], emoji_id=SKIP_EMOJI),
+            create_btn(text="⏹", cb=f"ADMIN Stop|{chat_id}", style=s_map[3], emoji_id=STOP_EMOJI),
         ],
         [
             create_btn(text=autoplay_label(chat_id), cb=f"ADMIN Autoplay|{chat_id}", style=s_map[1]),
@@ -349,18 +349,17 @@ def panel_markup_4(_, vidid, chat_id, played, dur):
     # Block and Moving Emoji Logic (▰▰▰🎵▱▱▱▱▱▱)
     filled_blocks = min(max(filled_blocks, 0), total_blocks - 1)
     bar = "▰" * filled_blocks + "🎵" + "▱" * (total_blocks - filled_blocks - 1)
-
     s_map = get_style_map()
     buttons = [
         [
             create_btn(text=f"{played} {bar} {dur}", cb="GetTimer", style=s_map[1], emoji_id=5217933090483098080)
         ],
         [
-            create_btn(text="\u200b", cb=f"ADMIN Resume|{chat_id}", style=s_map[3], emoji_id=PLAY_EMOJI),
-            create_btn(text="\u200b", cb=f"ADMIN Pause|{chat_id}", style=s_map[3], emoji_id=PAUSE_EMOJI),
-            create_btn(text="\u200b", cb=f"EqPanel {chat_id}", style=s_map[3], emoji_id=EQ_EMOJI),
-            create_btn(text="\u200b", cb=f"ADMIN Skip|{chat_id}", style=s_map[3], emoji_id=SKIP_EMOJI),
-            create_btn(text="\u200b", cb=f"ADMIN Stop|{chat_id}", style=s_map[3], emoji_id=STOP_EMOJI),
+            create_btn(text="▶", cb=f"ADMIN Resume|{chat_id}", style=s_map[3], emoji_id=PLAY_EMOJI),
+            create_btn(text="⏸", cb=f"ADMIN Pause|{chat_id}", style=s_map[3], emoji_id=PAUSE_EMOJI),
+            create_btn(text="❄️", cb=f"EqPanel {chat_id}", style=s_map[3], emoji_id=EQ_EMOJI),
+            create_btn(text="⏭", cb=f"ADMIN Skip|{chat_id}", style=s_map[3], emoji_id=SKIP_EMOJI),
+            create_btn(text="⏹", cb=f"ADMIN Stop|{chat_id}", style=s_map[3], emoji_id=STOP_EMOJI),
         ],
         [
             create_btn(text=autoplay_label(chat_id), cb=f"ADMIN Autoplay|{chat_id}", style=s_map[1]),
@@ -394,18 +393,17 @@ def panel_markup_clone(_, vidid, chat_id, played, dur):
     # Block and Moving Emoji Logic (▰▰▰🎵▱▱▱▱▱▱)
     filled_blocks = min(max(filled_blocks, 0), total_blocks - 1)
     bar = "▰" * filled_blocks + "🎵" + "▱" * (total_blocks - filled_blocks - 1)
-
     s_map = get_style_map()
     buttons = [
         [
             create_btn(text=f"{played} {bar} {dur}", cb="GetTimer", style=s_map[1], emoji_id=5217933090483098080)
         ],
         [
-            create_btn(text="\u200b", cb=f"ADMIN Resume|{chat_id}", style=s_map[3], emoji_id=PLAY_EMOJI),
-            create_btn(text="\u200b", cb=f"ADMIN Pause|{chat_id}", style=s_map[3], emoji_id=PAUSE_EMOJI),
-            create_btn(text="\u200b", cb=f"EqPanel {chat_id}", style=s_map[3], emoji_id=EQ_EMOJI),
-            create_btn(text="\u200b", cb=f"ADMIN Skip|{chat_id}", style=s_map[3], emoji_id=SKIP_EMOJI),
-            create_btn(text="\u200b", cb=f"ADMIN Stop|{chat_id}", style=s_map[3], emoji_id=STOP_EMOJI),
+            create_btn(text="▶", cb=f"ADMIN Resume|{chat_id}", style=s_map[3], emoji_id=PLAY_EMOJI),
+            create_btn(text="⏸", cb=f"ADMIN Pause|{chat_id}", style=s_map[3], emoji_id=PAUSE_EMOJI),
+            create_btn(text="❄️", cb=f"EqPanel {chat_id}", style=s_map[3], emoji_id=EQ_EMOJI),
+            create_btn(text="⏭", cb=f"ADMIN Skip|{chat_id}", style=s_map[3], emoji_id=SKIP_EMOJI),
+            create_btn(text="⏹", cb=f"ADMIN Stop|{chat_id}", style=s_map[3], emoji_id=STOP_EMOJI),
         ],
         [
             create_btn(text="-20s", cb=f"ADMIN SeekBack|{chat_id}", style=s_map[4]),
