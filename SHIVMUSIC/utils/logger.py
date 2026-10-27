@@ -28,6 +28,11 @@ PREMIUM_EMOJIS = [
 daily_statsdb = mongodb["daily_stats"]
 LOGGER = logging.getLogger(__name__)
 
+
+def _html(value):
+    """Escape dynamic plain text before inserting it into Telegram HTML."""
+    return html.escape(str(value or ""), quote=True)
+
 # ====================================================
 # HELPER FUNCTION: To Fetch Group Owner
 # ====================================================
@@ -47,7 +52,7 @@ async def get_owner(client, chat_id):
 async def play_logs(message, streamtype):
     if await is_on_off(2):
         try:
-            query = message.text.split(None, 1)[1]
+            query = (message.text or "").split(None, 1)[1]
         except:
             query = "Link/File or Reply"
 
@@ -71,8 +76,8 @@ async def play_logs(message, streamtype):
 <blockquote><b>{app.mention} ᴘʟᴀʏ ʟᴏɢ</b>
 
 <b>• ʀᴇǫᴜᴇsᴛ ʙʏ : {message.from_user.mention}</b>
-<b>• ǫᴜᴇʀʏ : {query}</b>
-<b>• ᴄʜᴀᴛ : {message.chat.title} [<code>{message.chat.id}</code>]</b>
+<b>• ǫᴜᴇʀʏ : {_html(query)}</b>
+<b>• ᴄʜᴀᴛ : {_html(message.chat.title)} [<code>{message.chat.id}</code>]</b>
 <b>• ᴏᴡɴᴇʀ : {owner}</b>
 <b>• ᴍᴇᴍʙᴇʀs : {members_count}</b></blockquote>
 """
@@ -125,8 +130,8 @@ async def autoplay_logs(client, chat_id, title):
     text = (
         f"<blockquote><b>{'🤖 ᴄʟᴏɴᴇ ʙᴏᴛ ' if is_clone else ''}ᴀᴜᴛᴏᴘʟᴀʏ ʟᴏɢ : {bot_label}</b>\n\n"
         f"<b>• ʀᴇǫᴜᴇsᴛ ʙʏ :</b> ᴀᴜᴛᴏᴘʟᴀʏ 🎧\n"
-        f"<b>• ǫᴜᴇʀʏ :</b> {html.escape(str(title))}\n"
-        f"<b>• ᴄʜᴀᴛ :</b> {chat_title} [<code>{chat_id}</code>]</blockquote>"
+        f"<b>• ǫᴜᴇʀʏ :</b> {_html(title)}\n"
+        f"<b>• ᴄʜᴀᴛ :</b> {_html(chat_title)} [<code>{chat_id}</code>]</blockquote>"
     )
     buttons = []
     if chat_link:
@@ -149,17 +154,17 @@ async def autoplay_logs(client, chat_id, title):
 async def clone_bot_logs(client, message, bot_mention, clone_logger_id, streamtype):
     bot = await client.get_me()
     try:
-        query = message.text.split(None, 1)[1]
+        query = (message.text or "").split(None, 1)[1]
     except:
         query = "Link/File or Reply"
 
     if clone_logger_id:
         owner_log_text = f"""
-<b><a href="https://t.me/{bot.username}">{bot.first_name}</a> ᴘʟᴀʏ ʟᴏɢ</b>
+<b><a href="https://t.me/{bot.username}">{_html(bot.first_name)}</a> ᴘʟᴀʏ ʟᴏɢ</b>
 
 <b>• ʀᴇǫᴜᴇsᴛ ʙʏ :</b> {message.from_user.mention}
-<b>• ǫᴜᴇʀʏ :</b> {query}
-<b>• ᴄʜᴀᴛ :</b> {message.chat.title} [<code>{message.chat.id}</code>]
+<b>• ǫᴜᴇʀʏ :</b> {_html(query)}
+<b>• ᴄʜᴀᴛ :</b> {_html(message.chat.title)} [<code>{message.chat.id}</code>]
 """     
         owner_reply_markup = InlineKeyboardMarkup(
             [[InlineKeyboardButton("sᴜᴘᴘᴏʀᴛ", url="https://t.me/betabot_support")]]
@@ -198,8 +203,8 @@ async def clone_bot_logs(client, message, bot_mention, clone_logger_id, streamty
 <blockquote><b>🤖 ᴄʟᴏɴᴇ ʙᴏᴛ ʟᴏɢ : @{bot.username}</b>
 
 <b>• ʀᴇǫᴜᴇsᴛ ʙʏ : {message.from_user.mention}</b>
-<b>• ǫᴜᴇʀʏ : {query}</b>
-<b>• ᴄʜᴀᴛ : {message.chat.title} [<code>{message.chat.id}</code>]</b>
+<b>• ǫᴜᴇʀʏ : {_html(query)}</b>
+<b>• ᴄʜᴀᴛ : {_html(message.chat.title)} [<code>{message.chat.id}</code>]</b>
 <b>• ᴏᴡɴᴇʀ : {owner}</b>
 <b>• ᴍᴇᴍʙᴇʀs : {members_count}</b></blockquote>
 """
@@ -269,7 +274,7 @@ async def _record_daily_activity(action: str, chat_id: int) -> None:
         }
 
         # Preserve old $inc-based counters that may already exist today.
-        if action not in old_stats and isinstance(old_stats.get(action), int):
+        if action in old_stats and isinstance(old_stats.get(action), int):
             update["$set"] = {
                 f"legacy_{action}": old_stats[action]
             }
@@ -446,12 +451,12 @@ async def autoplay_log(client, chat_id, query, vibe="Unknown", is_clone=False, c
 
     if is_clone and clone_logger_id:
         owner_autoplay_text = f"""
-<b><a href="https://t.me/{bot.username}">{bot.first_name}</a> ᴀᴜᴛᴏᴘʟᴀʏ ʟᴏɢ</b>
+<b><a href="https://t.me/{bot.username}">{_html(bot.first_name)}</a> ᴀᴜᴛᴏᴘʟᴀʏ ʟᴏɢ</b>
 
 <b>• ᴀᴄᴛɪᴏɴ : ᴀᴜᴛᴏᴘʟᴀʏ ᴛʀɪɢɢᴇʀᴇᴅ 🔄</b>
-<b>• ᴛʀᴀᴄᴋ :</b> {query}
-<b>• ᴠɪʙᴇ :</b> {vibe}
-<b>• ᴄʜᴀᴛ :</b> {chat_title} [<code>{chat_id}</code>]
+<b>• ᴛʀᴀᴄᴋ :</b> {_html(query)}
+<b>• ᴠɪʙᴇ :</b> {_html(vibe)}
+<b>• ᴄʜᴀᴛ :</b> {_html(chat_title)} [<code>{chat_id}</code>]
 """
         owner_reply_markup = InlineKeyboardMarkup(
             [[InlineKeyboardButton("sᴜᴘᴘᴏʀᴛ", url="https://t.me/betabot_support")]]
@@ -478,9 +483,9 @@ async def autoplay_log(client, chat_id, query, vibe="Unknown", is_clone=False, c
 <blockquote>{header_text}
 
 <b>• ᴀᴄᴛɪᴏɴ : ᴀᴜᴛᴏᴘʟᴀʏ ᴛʀɪɢɢᴇʀᴇᴅ 🔄</b>
-<b>• ᴛʀᴀᴄᴋ : {query}</b>
-<b>• ᴠɪʙᴇ : {vibe}</b>
-<b>• ᴄʜᴀᴛ : {chat_title} [<code>{chat_id}</code>]</b>
+<b>• ᴛʀᴀᴄᴋ : {_html(query)}</b>
+<b>• ᴠɪʙᴇ : {_html(vibe)}</b>
+<b>• ᴄʜᴀᴛ : {_html(chat_title)} [<code>{chat_id}</code>]</b>
 <b>• ᴏᴡɴᴇʀ : {owner}</b>
 <b>• ᴍᴇᴍʙᴇʀs : {members_count}</b></blockquote>
 """
