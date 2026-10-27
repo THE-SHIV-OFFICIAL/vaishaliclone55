@@ -152,8 +152,7 @@ async def report_exception(
     if target is None:
         return
 
-    # Harmless Telegram errors (MESSAGE_NOT_MODIFIED, PEER_ID_INVALID...) and
-    # repeated "Too many open files" storms are not reported.
+    # Harmless Telegram errors and normal network socket disconnects are not reported.
     _exc_txt = f"{type(exception).__name__} {exception}"
     if any(k in _exc_txt for k in IGNORED_ERRORS) or "MessageNotModified" in _exc_txt:
         return
@@ -173,8 +172,6 @@ async def report_exception(
     except Exception:
         pass
 
-    # Prefer the dedicated error group, but fall back to the normal logger
-    # when deployments only configured LOGGER_ID.
     logger_id = getattr(config, "ERROR_LOGGER_ID", 0) or getattr(
         config, "LOGGER_ID", 0
     )
@@ -203,8 +200,6 @@ async def report_exception(
         )
         footer = "</pre>"
 
-        # Telegram has a 4096-character limit. Split only the traceback body
-        # so every individual message remains valid HTML.
         escaped_trace = html.escape(trace, quote=True)
         body_size = max(500, MAX_TELEGRAM_MESSAGE_LENGTH - len(header) - len(footer) - 80)
         trace_parts = list(_chunks(escaped_trace, body_size))
@@ -226,8 +221,6 @@ async def report_exception(
                     disable_web_page_preview=True,
                 )
             except Exception as send_error:
-                # Never use LOGGER.error here: the logging bridge would call
-                # this function again. stderr is the safe last-resort path.
                 print(
                     "SHIVMUSIC error logger could not send report: "
                     f"{type(send_error).__name__}: {send_error}",
@@ -275,6 +268,13 @@ IGNORED_ERRORS = (
     "CHAT_ADMIN_REQUIRED",
     "MESSAGE_ID_INVALID",
     "QUERY_ID_INVALID",
+    "BrokenPipeError",
+    "Broken pipe",
+    "ConnectionResetError",
+    "Connection reset by peer",
+    "Errno 32",
+    "Errno 104",
+    "ServerDisconnectedError",
 )
 _DEDUP_SECONDS = 300
 _MAX_PENDING_REPORTS = 20
@@ -284,6 +284,9 @@ _pending_reports = 0
 
 def _should_report(record: logging.LogRecord) -> bool:
     import time as _t
+    # Pyrogram low-level socket disconnect/reconnect events are normal background behavior
+    if record.name.startswith(("pyrogram.connection", "pyrogram.session")):
+        return False
     try:
         msg = record.getMessage()
     except Exception:
